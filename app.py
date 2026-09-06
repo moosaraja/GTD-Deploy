@@ -1,16 +1,46 @@
 # app.py
-# GTD Web App - entry point
+# GTD Web App - entry point (Production Ready for Render + Neon)
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix  # <--- REQUIRED FOR RENDER SSL
 from datetime import date
 import db
 import os
+from whitenoise import WhiteNoise  # <--- REQUIRED FOR STATIC FILES ON RENDER
 
 app = Flask(__name__)
-#app.secret_key = "c486102bef6787d20a4c73f30bfbfde38795fb9e7a6a165dbe67e6e730dee51b"   # sessions
-app.secret_key = os.environ.get("GTD_SECRET_KEY", "dev-only-fallback-key")
 
+# ---------------------------------------------------------
+# CONFIGURATION (Reads from Environment Variables on Render)
+# ---------------------------------------------------------
+
+# 1. Secret Key (Set in Render Dashboard -> Environment -> SECRET_KEY)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-insecure-fallback-key')
+
+# 2. Database URL (Set in Render Dashboard -> Environment -> DATABASE_URL)
+# Neon/Render give "postgres://..." but psycopg2 prefers "postgresql://..."
+db_url = os.environ.get('DATABASE_URL', 'postgresql://localhost/gtd_local')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['DATABASE_URL'] = db_url
+
+# 3. Security & Proxy Settings (Render terminates SSL)
+# This ensures session cookies work over HTTPS and url_for generates https://
+app.config['SESSION_COOKIE_SECURE'] = True       # Only transmit cookies over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True     # Prevent XSS (JS access)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'    # CSRF protection
+# Trust the 'X-Forwarded-Proto' and 'X-Forwarded-Host' headers from Render's load balancer
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# 4. WhiteNoise: Serve static files (CSS, JS, Images) directly from Gunicorn
+# Assumes your static folder is named 'static' in the project root.
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
+
+
+# ---------------------------------------------------------
+# YOUR EXISTING LOGIC (Unchanged, just indented under app)
+# ---------------------------------------------------------
 
 # ---------- AUTH: current user + decorators ----------
 def current_user():
@@ -368,7 +398,7 @@ def projects_view():
         "SELECT * FROM projects WHERE status = 'active' AND user_id = %s "
         "ORDER BY created_at DESC",
         (uid(),))
-    items = db.fetch_all(
+        items = db.fetch_all(
         "SELECT * FROM items WHERE project_id IS NOT NULL AND user_id = %s "
         "AND status IN ('next_action','scheduled','waiting_for') "
         "ORDER BY created_at ASC",
@@ -531,5 +561,7 @@ def admin_delete(user_id):
     flash("User and all their data deleted.")
     return redirect(url_for("admin_panel"))
 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=955)
+    # Local development only (Render uses Gunicorn via startCommand)
+    app.run(debug=True, host="0.0.0.0", port=955)
