@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Item — GTD App{% endblock %}
+
+{% block content %}
+    <h1>✏️ Edit Item</h1>
+    <p class="subtitle">Fix the details, or move it to another list.</p>
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('item_update', item_id=item.id) }}">
+
+            <label style="font-weight:600; font-size:14px;">Title</label>
+            <input type="text" name="title" value="{{ item.title }}" required maxlength="500">
+
+            <label style="font-weight:600; font-size:14px;">Notes</label>
+            <textarea name="notes">{{ item.notes or '' }}</textarea>
+
+            <label style="font-weight:600; font-size:14px;">Move to list (status)</label>
+            <select name="status" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #dcdfe4; border-radius:6px; font-size:15px;">
+                {% set opts = [('inbox','📥 Inbox'), ('next_action','➡ Next Action'),
+                               ('scheduled','📅 Scheduled (Calendar)'),
+                               ('waiting_for','🤝 Waiting For'),
+                               ('someday_maybe','☁ Someday / Maybe'),
+                               ('reference','📁 Reference'),
+                               ('done','✅ Completed'), ('trash','🗑 Trash')] %}
+                {% for val, label in opts %}
+                    <option value="{{ val }}" {% if item.status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <label style="font-weight:600; font-size:14px;">Context 📍</label>
+            <select name="context_id" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #dcdfe4; border-radius:6px; font-size:15px;">
+                <option value="">— none —</option>
+                {% for ctx in contexts %}
+                    <option value="{{ ctx.id }}" {% if item.context_id == ctx.id %}selected{% endif %}>{{ ctx.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label style="font-weight:600; font-size:14px;">Project 📋</label>
+            <select name="project_id" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #dcdfe4; border-radius:6px; font-size:15px;">
+                <option value="">— none —</option>
+                {% for p in projects %}
+                    <option value="{{ p.id }}" {% if item.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label style="font-weight:600; font-size:14px;">Due date 📅 (for Scheduled)</label>
+            <input type="date" name="due_date" value="{{ item.due_date or '' }}" style="width:auto;">
+            <input type="time" name="due_time" value="{{ item.due_time or '' }}" style="width:auto;">
+
+            <label style="font-weight:600; font-size:14px; display:block; margin-top:10px;">Delegated to 🤝 (for Waiting For)</label>
+            <input type="text" name="delegated_to" value="{{ item.delegated_to or '' }}" placeholder="Who?" style="width:auto; min-width:250px;">
+
+            <div style="margin-top:16px;">
+                <button type="submit" class="btn">💾 Save</button>
+                <a href="{{ request.referrer or url_for('inbox') }}" style="margin-left:12px; color:#7f8c8d;">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

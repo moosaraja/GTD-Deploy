@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Process — GTD App{% endblock %}
+
+{% block content %}
+<h1>⚙️ Process
+    {% if count > 0 %}<span class="badge">{{ count }}</span>{% endif %}
+</h1>
+<p class="subtitle">One item at a time. Never put anything back into "IN".</p>
+
+{% if item %}
+<!-- "What is it?" -->
+<div class="card">
+    <div class="item-title" style="font-size:18px;">{{ item.title }}</div>
+    {% if item.notes %}
+    <div class="item-notes" style="margin-top:6px;">{{ item.notes }}</div>
+    {% endif %}
+    <div class="item-date">Added {{ item.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+</div>
+
+<!-- "Is it actionable?" -->
+<div class="card">
+    <h2 style="font-size:16px; margin-bottom:14px;">Is it actionable?</h2>
+
+    <!-- NO branch -->
+    <p style="font-weight:600; color:#e74c3c; margin-bottom:10px;">NO</p>
+    <form method="POST" action="{{ url_for('process_trash', item_id=item.id) }}" style="display:inline;">
+        <button type="submit" class="btn-link">🗑 Eliminate (Trash)</button>
+    </form>
+    <form method="POST" action="{{ url_for('process_someday', item_id=item.id) }}" style="display:inline;">
+        <button type="submit" class="btn-link">☁ Incubate (Someday/Maybe)</button>
+    </form>
+    <form method="POST" action="{{ url_for('process_reference', item_id=item.id) }}" style="display:inline;">
+        <button type="submit" class="btn-link">📁 Reference</button>
+    </form>
+
+    <hr style="border:none; border-top:1px solid #eee; margin:16px 0;">
+
+    <!-- YES branch -->
+    <p style="font-weight:600; color:#27ae60; margin-bottom:10px;">YES</p>
+    <form method="POST" action="{{ url_for('process_done', item_id=item.id) }}" style="display:inline;">
+        <button type="submit" class="btn-link" style="color:#27ae60;">⚡ Do it (&lt; 2 min)</button>
+    </form>
+    <form method="POST" action="{{ url_for('process_next', item_id=item.id) }}" style="display:inline;">
+        <select name="context_id" style="padding:6px; border:1px solid #dcdfe4; border-radius:6px;">
+            <option value="">No context</option>
+            {% for ctx in contexts %}
+            <option value="{{ ctx.id }}">{{ ctx.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-link" style="color:#2980b9;">➡ Next Action</button>
+    </form>
+
+    <hr style="border:none; border-top:1px solid #eee; margin:16px 0;">
+
+    <form method="POST" action="{{ url_for('process_delegate', item_id=item.id) }}" style="margin-bottom:12px;">
+        <label style="font-weight:600; font-size:14px;">🤝 Delegate it (Waiting For)</label><br>
+        <input type="text" name="delegated_to" placeholder="Who is responsible?"
+            style="width:auto; min-width:250px; margin:6px 0;" required>
+        <button type="submit" class="btn" style="padding:8px 14px;">Delegate</button>
+    </form>
+
+    <form method="POST" action="{{ url_for('process_schedule', item_id=item.id) }}" style="margin-bottom:12px;">
+        <label style="font-weight:600; font-size:14px;">📅 Defer to a specific day (Calendar)</label><br>
+        <input type="date" name="due_date" style="width:auto; margin:6px 0;" required>
+        <input type="time" name="due_time" style="width:auto;">
+        <button type="submit" class="btn" style="padding:8px 14px;">Schedule</button>
+    </form>
+
+    <form method="POST" action="{{ url_for('process_project', item_id=item.id) }}">
+        <label style="font-weight:600; font-size:14px;">📋 Multi-step? Make it a Project</label><br>
+        <input type="text" name="project_name" placeholder="Successful outcome, e.g. 'Renew passport'"
+            style="width:auto; min-width:350px; margin:6px 0;" required>
+        <button type="submit" class="btn" style="padding:8px 14px;">Create Project</button>
+    </form>
+
+
+</div>
+{% else %}
+<div class="empty">
+    🎉 Nothing to process! Inbox is empty.<br><br>
+    <a href="{{ url_for('inbox') }}">Go to Inbox to add more stuff</a>
+</div>
+{% endif %}
+{% endblock %}

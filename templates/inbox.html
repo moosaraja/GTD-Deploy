@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox — GTD App{% endblock %}
+
+{% block content %}
+    <h1>📥 Inbox
+        {% if count > 0 %}<span class="badge">{{ count }}</span>{% endif %}
+    </h1>
+    <p class="subtitle">Collect everything that has your attention. Process it later.</p>
+
+    <!-- Capture form: "Stuff" goes into "IN" -->
+    <div class="card">
+        <form method="POST" action="{{ url_for('inbox_add') }}">
+            <input type="text" name="title" placeholder="What's on your mind?" required maxlength="500">
+            <textarea name="notes" placeholder="Notes (optional)"></textarea>
+            <button type="submit" class="btn">Add to Inbox</button>
+        </form>
+    </div>
+
+    <!-- The "IN" tray -->
+    {% if items %}
+        <ul class="item-list">
+            {% for item in items %}
+                <li>
+                    <div>
+                        <div class="item-title">{{ item.title }}</div>
+                        {% if item.notes %}<div class="item-notes">{{ item.notes }}</div>{% endif %}
+                        <div class="item-date">Added {{ item.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+                    </div>
+                    <!-- Workflow: Eliminate -> Trash -->
+                    <form method="POST" action="{{ url_for('inbox_trash', item_id=item.id) }}">
+                        <button type="submit" class="btn-link">🗑 Trash</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty">
+            🎉 Inbox zero! Add some "stuff" above.
+        </div>
+    {% endif %}
+{% endblock %}

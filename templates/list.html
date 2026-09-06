@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — GTD App{% endblock %}
+
+{% block content %}
+<h1>{{ title }}
+    {% if items %}<span class="badge">{{ items|length }}</span>{% endif %}
+</h1>
+<p class="subtitle">Everything with this status lives here.</p>
+
+    {% if status == 'trash' and items %}
+        <form method="POST" action="{{ url_for('trash_empty') }}" 
+              onsubmit="return confirm('Permanently delete ALL items in Trash?');">
+            <button type="submit" class="btn-link">🔥 Empty Trash</button>
+        </form>
+    {% endif %}
+
+<!-- DO phase: "What can I do here?" -->
+<div class="card" style="padding:12px 20px; margin-bottom:16px;">
+    <strong style="font-size:14px;">📍 Filter by context:</strong>
+    <a href="{{ url_for('list_view', status=status) }}"
+        style="margin-left:10px; {% if not active_context %}font-weight:bold; color:#2980b9;{% endif %}">All</a>
+    {% for ctx in contexts %}
+    <a href="{{ url_for('list_view', status=status, context=ctx.id) }}"
+        style="margin-left:10px; {% if active_context == ctx.id %}font-weight:bold; color:#2980b9;{% endif %}">{{
+        ctx.name }}</a>
+    {% endfor %}
+</div>
+
+{% if items %}
+<ul class="item-list">
+    {% for item in items %}
+    <li>
+        <div>
+            <div class="item-title">{{ item.title }}</div>
+            {% if item.notes %}<div class="item-notes">{{ item.notes }}</div>{% endif %}
+            {% if item.delegated_to %}
+            <div class="item-notes">🤝 Waiting on: <strong>{{ item.delegated_to }}</strong></div>
+            {% endif %}
+            {% if item.due_date %}
+            <div class="item-notes">📅 Due: {{ item.due_date.strftime('%d %b %Y') }}{% if item.due_time %} at {{
+                item.due_time.strftime('%H:%M') }}{% endif %}</div>
+            {% endif %}
+            {% if item.project_name %}
+            <div class="item-notes">📋 Project: {{ item.project_name }}</div>
+            {% endif %}
+            {% if item.context_name %}
+            <div class="item-notes">📍 {{ item.context_name }}</div>
+            {% endif %}
+            <div class="item-date">Added {{ item.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+        </div>
+        <div>
+            <div>
+                {% if status in ['next_action', 'waiting_for', 'scheduled','someday_maybe'] %}
+                <form method="POST" action="{{ url_for('item_set_context', item_id=item.id) }}"
+                    style="display:inline; margin-right:6px;">
+                    <select name="context_id"
+                        style="padding:4px; border:1px solid #dcdfe4; border-radius:6px; font-size:13px;">
+                        <option value="">📍 set context</option>
+                        {% for ctx in contexts %}
+                        <option value="{{ ctx.id }}" {% if item.context_id==ctx.id %}selected{% endif %}>{{ ctx.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-link" style="font-size:13px;">Set</button>
+                </form>
+                {% endif %}
+                {% if status in ['next_action', 'scheduled', 'waiting_for'] %}
+                <form method="POST" action="{{ url_for('item_done', item_id=item.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-link" style="color:#27ae60;">✅ Done</button>
+                </form>
+                {% endif %}
+                <a href="{{ url_for('item_edit', item_id=item.id) }}" class="btn-link" style="color:#7f8c8d;">✏️
+                    Edit</a>
+                {% if status == 'trash' %}
+                <form method="POST" action="{{ url_for('item_restore', item_id=item.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-link" style="color:#2980b9;">↩ Restore</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty">Nothing here yet.</div>
+{% endif %}
+{% endblock %}

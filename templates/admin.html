@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — GTD App{% endblock %}
+
+{% block content %}
+    <h1>🛡 Admin — User Management</h1>
+    <p class="subtitle">{{ users|length }} registered user{{ '' if users|length == 1 else 's' }}.</p>
+
+    <div class="card">
+        <ul class="item-list">
+            {% for u in users %}
+                <li>
+                    <div>
+                        <div class="item-title">
+                            {{ u.username }}
+                            {% if u.is_admin %}<span class="badge" style="background:#8e44ad;">ADMIN</span>{% endif %}
+                            {% if not u.is_active %}<span class="badge" style="background:#7f8c8d;">DISABLED</span>{% endif %}
+                            {% if u.id == current_user.id %}<span class="badge" style="background:#2980b9;">YOU</span>{% endif %}
+                        </div>
+                        <div class="item-date">{{ u.item_count }} items · joined {{ u.created_at.strftime('%d %b %Y') }}</div>
+                    </div>
+                    <div style="display:flex; gap:2px; align-items:center;">
+                        {% if u.id != current_user.id %}
+                            <form method="POST" action="{{ url_for('admin_toggle_admin', user_id=u.id) }}">
+                                <button type="submit" class="btn-link" style="color:#8e44ad;">
+                                    {% if u.is_admin %}▼ Demote{% else %}▲ Promote{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_toggle_active', user_id=u.id) }}">
+                                <button type="submit" class="btn-link" style="color:#e67e22;">
+                                    {% if u.is_active %}⛔ Disable{% else %}✅ Enable{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_delete', user_id=u.id) }}"
+                                  onsubmit="return confirm('Permanently delete {{ u.username }} and ALL their data?');">
+                                <button type="submit" class="btn-link">🗑 Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="item-notes">no self-actions</span>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

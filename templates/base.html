@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GTD App{% endblock %}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            background: linear-gradient(160deg, #eef2f9 0%, #f6f4fb 60%, #f3eefb 100%);
+            background-attachment: fixed;
+            color: #2d3436;
+            min-height: 100vh;
+        }
+
+        nav {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 55%, #6a3093 100%);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2px;
+            box-shadow: 0 4px 18px rgba(30, 60, 114, 0.35);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .brand {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #fff;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 7px 13px;
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        nav a {
+            color: rgba(255, 255, 255, 0.78);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        nav a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        nav a.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.22);
+            font-weight: 600;
+        }
+
+        nav .user-area {
+            margin-left: auto;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav .user-area a.logout {
+            background: rgba(231, 76, 60, 0.85);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        nav .user-area a.logout:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 30px auto;
+            padding: 0 18px;
+        }
+
+        h1 {
+            font-size: 26px;
+            background: linear-gradient(135deg, #1e3c72, #6a3093);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #8a94a6;
+            margin-bottom: 22px;
+            font-size: 15px;
+        }
+
+        .badge {
+            background: #e74c3c;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            vertical-align: middle;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 8px 24px rgba(30, 60, 114, 0.10);
+            border: 1px solid rgba(30, 60, 114, 0.06);
+            margin-bottom: 22px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px 14px;
+            margin-bottom: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            background: #fbfcfe;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.12);
+            background: #fff;
+        }
+
+        textarea {
+            height: 64px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2a5298, #6a3093);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(42, 82, 152, 0.4);
+        }
+
+        .btn-link {
+            background: none;
+            color: #e74c3c;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 8px;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        ul.item-list {
+            list-style: none;
+        }
+
+        ul.item-list li {
+            background: #fff;
+            border: 1px solid rgba(30, 60, 114, 0.07);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 3px 10px rgba(30, 60, 114, 0.07);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+
+        ul.item-list li:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(30, 60, 114, 0.12);
+        }
+
+        .item-title {
+            font-weight: 600;
+        }
+
+        .item-notes {
+            color: #7a8499;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .item-date {
+            color: #aab3c5;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #95a0b5;
+            padding: 44px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px dashed #c9d2e3;
+        }
+
+        .flash {
+            background: #fff7df;
+            color: #856404;
+            border: 1px solid #f0d264;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        a {
+            color: #2a5298;
+        }
+
+
+        /* ---------- DARK THEME ---------- */
+        body.dark {
+            color-scheme: dark;
+            background: linear-gradient(160deg, #0f1626 0%, #141c30 60%, #1b1530 100%);
+            background-attachment: fixed;
+            color: #e8eaf0;
+        }
+
+        body.dark .subtitle {
+            color: #9aa5bd;
+        }
+
+        body.dark .card {
+            background: #1c2438;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        body.dark input[type="text"],
+        body.dark input[type="password"],
+        body.dark input[type="date"],
+        body.dark input[type="time"],
+        body.dark select,
+        body.dark textarea {
+            background: #151d30;
+            border-color: #2c3852;
+            color: #e8eaf0;
+        }
+
+        body.dark input:focus,
+        body.dark select:focus,
+        body.dark textarea:focus {
+            border-color: #7c5cbf;
+            background: #1a2338;
+            box-shadow: 0 0 0 3px rgba(124, 92, 191, 0.25);
+        }
+
+        body.dark ul.item-list li {
+            background: #1c2438;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        body.dark ul.item-list li:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark ul.item-list li[style] {
+            background: #1c2438;
+        }
+
+        /* project sub-rows */
+        body.dark .item-notes {
+            color: #9aa5bd;
+        }
+
+        body.dark .item-date {
+            color: #66718c;
+        }
+
+        body.dark .empty {
+            background: #1c2438;
+            color: #7d89a5;
+            border: 1px dashed #33405e;
+        }
+
+        body.dark .flash {
+            background: #33290f;
+            color: #f0d264;
+            border: 1px solid #5a4a1e;
+        }
+
+        body.dark a {
+            color: #8fb4ff;
+        }
+
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 11px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+    </style>
+</head>
+
+<body data-endpoint="{{ request.endpoint }}">
+    {% if current_user %}
+    <nav>
+        <span class="brand">GTD</span>
+        <a href="{{ url_for('inbox') }}">Inbox</a>
+        <a href="{{ url_for('process') }}">Process</a>
+        <a href="{{ url_for('projects_view') }}">Projects</a>
+        <a href="{{ url_for('review') }}">Review</a>
+        <a href="{{ url_for('list_view', status='next_action') }}">Next Actions</a>
+        <a href="{{ url_for('list_view', status='scheduled') }}">Calendar</a>
+        <a href="{{ url_for('list_view', status='waiting_for') }}">Waiting For</a>
+        <a href="{{ url_for('list_view', status='someday_maybe') }}">Someday</a>
+        <a href="{{ url_for('list_view', status='reference') }}">Reference</a>
+        <a href="{{ url_for('list_view', status='trash') }}">Trash</a>
+        <a href="{{ url_for('list_view', status='done') }}">Completed</a>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin_panel') }}">Admin</a>
+        {% endif %}
+            <span class="user-area">
+                <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
+                👤 {{ current_user.username }}
+                <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+            </span>
+    </nav>
+    {% endif %}
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% for m in messages %}
+        <div class="flash">{{ m }}</div>
+        {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        const ep = document.body.dataset.endpoint;
+        document.querySelectorAll("nav a").forEach(a => {
+            if (a.href.includes("/" + ep) && !a.href.includes("status=")) {
+                a.classList.add("active");
+            }
+        });
+        const params = new URLSearchParams(window.location.search);
+        const ctx = params.get("context");
+        document.querySelectorAll("nav a").forEach(a => {
+            if (a.href.includes("status=") && window.location.pathname.includes(a.href.split("status=")[1].split("&")[0])
+                && (a.href.includes("context=" + ctx) || !a.href.includes("context="))) {
+                a.classList.add("active");
+            }
+        });
+    </script>
+
+    <script>
+        function toggleTheme() {
+            const dark = document.body.classList.toggle("dark");
+            localStorage.setItem("gtd_theme", dark ? "dark" : "light");
+            document.getElementById("themeToggle").textContent = dark ? "☀️" : "🌙";
+        }
+        // apply saved choice on every page load
+        if (localStorage.getItem("gtd_theme") === "dark") {
+            document.body.classList.add("dark");
+            document.getElementById("themeToggle").textContent = "☀️";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Review — GTD App{% endblock %}
+
+{% block content %}
+    <h1>🔍 Weekly Review</h1>
+    <p class="subtitle">{{ today.strftime('%A, %d %B %Y') }} — as often as needed to keep your head empty.</p>
+
+    <!-- 1. GET CLEAR: inbox -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">📥 Get Clear: Inbox</h2>
+        {% if inbox_count > 0 %}
+            <p><span class="badge">{{ inbox_count }}</span> items waiting.
+               <a href="{{ url_for('process') }}">Process them now →</a></p>
+        {% else %}
+            <p class="item-notes">✅ Inbox zero — nothing to process.</p>
+        {% endif %}
+    </div>
+
+    <!-- 2. GET CURRENT: calendar -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">📅 Get Current: Calendar (past first)</h2>
+        {% if upcoming %}
+            <ul class="item-list">
+                {% for item in upcoming %}
+                    <li style="{% if item.due_date < today %}border-left:4px solid #e74c3c;{% endif %}">
+                        <div>
+                            <span class="item-title">{{ item.title }}</span>
+                            <span class="item-notes">📅 {{ item.due_date.strftime('%d %b %Y') }}
+                                {% if item.due_time %}{{ item.due_time.strftime('%H:%M') }}{% endif %}
+                                {% if item.due_date < today %}⚠️ overdue{% endif %}
+                            </span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="item-notes">Nothing scheduled.</p>
+        {% endif %}
+    </div>
+
+    <!-- 3. STUCK PROJECTS -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">⚠️ Stuck Projects (no next action)</h2>
+        {% if stuck %}
+            <ul class="item-list">
+                {% for p in stuck %}
+                    <li><div><span class="item-title">{{ p.name }}</span></div>
+                        <a href="{{ url_for('projects_view') }}">Plan it →</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="item-notes">✅ Every project has a next action. </p>
+        {% endif %}
+    </div>
+
+    <!-- 4. STALE NEXT ACTIONS -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">🕸 Loose Ends: Oldest Next Actions</h2>
+        {% if stale %}
+            <ul class="item-list">
+                {% for item in stale %}
+                    <li>
+                        <div><span class="item-title">{{ item.title }}</span>
+                            <span class="item-date">sitting since {{ item.updated_at.strftime('%d %b') }}</span></div>
+                        <form method="POST" action="{{ url_for('item_done', item_id=item.id) }}">
+                            <button type="submit" class="btn-link" style="color:#27ae60;">✅ Done</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="item-notes">No next actions yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- 5. WAITING FOR -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">🤝 Waiting For: chase these people</h2>
+        {% if waiting %}
+            <ul class="item-list">
+                {% for item in waiting %}
+                    <li><div><span class="item-title">{{ item.title }}</span>
+                        <span class="item-notes">🤝 {{ item.delegated_to }}</span></div></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="item-notes">Nobody owes you anything. 🎉</p>
+        {% endif %}
+    </div>
+
+    <!-- 6. THE 40,000 ft VIEW -->
+    <div class="card">
+        <h2 style="font-size:16px; margin-bottom:8px;">🗺 All Lists</h2>
+        {% for row in counts %}
+            <a href="{{ url_for('list_view', status=row.status) }}" style="margin-right:16px;">
+                {{ titles.get(row.status, row.status|title) }}: <strong>{{ row.c }}</strong>
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

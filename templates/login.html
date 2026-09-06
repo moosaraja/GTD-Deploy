@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — GTD App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6a3093 100%);
+            padding: 20px;
+        }
+        /* soft decorative circles */
+        body::before, body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+        body::before { width: 420px; height: 420px; top: -120px; left: -120px; }
+        body::after  { width: 520px; height: 520px; bottom: -180px; right: -140px; }
+
+        .card {
+            position: relative;
+            background: rgba(255,255,255,0.97);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 18px;
+            padding: 42px 36px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            z-index: 1;
+        }
+        .logo {
+            width: 64px; height: 64px;
+            margin: 0 auto 18px;
+            background: linear-gradient(135deg, #2a5298, #6a3093);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; color: #fff;
+            box-shadow: 0 8px 20px rgba(42,82,152,0.4);
+        }
+        h1 { text-align: center; font-size: 24px; color: #2d3436; margin-bottom: 4px; }
+        .sub { text-align: center; color: #8a94a6; font-size: 14px; margin-bottom: 26px; }
+        label { font-size: 13px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px; }
+        input {
+            width: 100%; padding: 12px 14px; margin-bottom: 16px;
+            border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font-size: 15px; outline: none; transition: border 0.2s;
+        }
+        input:focus { border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42,82,152,0.12); }
+        .btn {
+            width: 100%; padding: 13px; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #2a5298, #6a3093);
+            color: #fff; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(42,82,152,0.45); }
+        .foot { text-align: center; font-size: 14px; color: #8a94a6; margin-top: 20px; }
+        .foot a { color: #2a5298; font-weight: 600; text-decoration: none; }
+        .flash {
+            background: #fdecea; color: #b3261e; border: 1px solid #f5c6c2;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 14px; margin-bottom: 16px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">✓</div>
+        <h1>Welcome back</h1>
+        <p class="sub">Sign in to your GTD workspace</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Your username" required autofocus>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Your password" required>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+
+        <p class="foot">No account yet? <a href="{{ url_for('register') }}">Create one</a></p>
+    </div>
+</body>
+</html>

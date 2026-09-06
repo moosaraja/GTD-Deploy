@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Projects — GTD App{% endblock %}
+
+{% block content %}
+    <h1>📋 Projects
+        {% if projects %}<span class="badge">{{ projects|length }}</span>{% endif %}
+    </h1>
+    <p class="subtitle">Multi-step things: define the successful outcome, then track actions.</p>
+
+    <!-- New project: "What's the successful outcome?" -->
+    <div class="card">
+        <form method="POST" action="{{ url_for('project_add') }}">
+            <input type="text" name="name" placeholder="Project name, e.g. 'Renew passport'" required maxlength="200">
+            <textarea name="outcome" placeholder="Successful outcome — what done looks like (optional)"></textarea>
+            <button type="submit" class="btn">Add Project</button>
+        </form>
+    </div>
+
+    {% if projects %}
+        {% for project in projects %}
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <div class="item-title" style="font-size:17px;">{{ project.name }}</div>
+                        {% if project.outcome %}
+                            <div class="item-notes">🎯 Outcome: {{ project.outcome }}</div>
+                        {% endif %}
+                    </div>
+                    <form method="POST" action="{{ url_for('project_complete', project_id=project.id) }}">
+                        <button type="submit" class="btn-link" style="color:#27ae60;">🏁 Complete</button>
+                    </form>
+                </div>
+
+                <hr style="border:none; border-top:1px solid #eee; margin:12px 0;">
+
+                {% set p_items = items_by_project.get(project.id, []) %}
+                {% if p_items %}
+                    <ul class="item-list" style="margin-bottom:12px;">
+                        {% for it in p_items %}
+                            <li style="box-shadow:none; background:#f8f9fa;">
+                                <div>
+                                    <span class="item-title" style="font-weight:500;">{{ it.title }}</span>
+                                    {% if it.status == 'waiting_for' %}
+                                        <span class="item-notes">🤝 {{ it.delegated_to }}</span>
+                                    {% elif it.status == 'scheduled' and it.due_date %}
+                                        <span class="item-notes">📅 {{ it.due_date.strftime('%d %b') }}</span>
+                                    {% endif %}
+                                </div>
+                                <form method="POST" action="{{ url_for('item_done', item_id=it.id) }}">
+                                    <button type="submit" class="btn-link" style="color:#27ae60;">✅</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="item-notes" style="margin-bottom:12px;">⚠️ No next actions yet — a stuck project!</p>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('project_add_action', project_id=project.id) }}" style="display:flex; gap:8px;">
+                    <input type="text" name="title" placeholder="Next action for this project" required style="margin:0; flex:1;">
+                    <button type="submit" class="btn" style="padding:8px 14px;">Add</button>
+                </form>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">No active projects. Create one above, or process an inbox item as a Project.</div>
+    {% endif %}
+{% endblock %}
